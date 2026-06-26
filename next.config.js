@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [],
+    domains: ['lfobqlgkbwotyvzqxtvl.supabase.co'],
     formats: ['image/avif', 'image/webp'],
   },
 }

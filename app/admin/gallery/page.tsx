@@ -1,9 +1,8 @@
 ﻿'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Upload, Trash2, ImageIcon, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Upload, Trash2, ImageIcon, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 type GalleryImage = {
   id: string
@@ -71,13 +70,10 @@ export default function GalleryAdmin() {
   }
 
   return (
-    <div className="min-h-screen bg-dental-alt pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-dental-alt">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
 
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/admin" className="inline-flex items-center gap-2 text-dental-body hover:text-dental-blue text-sm transition-colors">
-            <ArrowLeft size={14} />Back
-          </Link>
           <h1 className="text-2xl font-bold text-dental-heading">Gallery Manager</h1>
           <span className="bg-dental-blue text-white text-xs font-semibold px-2.5 py-1 rounded-full">{images.length}</span>
         </div>

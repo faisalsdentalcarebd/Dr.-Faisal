@@ -1,9 +1,9 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, FileText, Save, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Save, Loader2, CheckCircle, XCircle, ImageIcon } from 'lucide-react'
 
 const CATEGORIES = ['General Dentistry', 'Implants', 'Orthodontics', 'Cosmetic', 'Oral Health', 'Patient Tips']
 
@@ -16,8 +16,11 @@ export default function NewBlogPost() {
   const [form, setForm] = useState({
     title: '', slug: '', excerpt: '', content: '', category: '', published: false,
   })
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok })
@@ -30,16 +33,24 @@ export default function NewBlogPost() {
     setForm(prev => ({ ...prev, title: v, slug: slugify(v) }))
   }
 
+  const handleCoverImage = (file: File) => {
+    if (!file.type.startsWith('image/')) { showToast('Images only', false); return }
+    if (file.size > 10 * 1024 * 1024) { showToast('Max 10MB', false); return }
+    setCoverFile(file)
+    setCoverPreview(URL.createObjectURL(file))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim()) { showToast('Title is required', false); return }
     if (!form.slug.trim()) { showToast('Slug is required', false); return }
     setSaving(true)
-    const res = await fetch('/api/admin/blog', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
+
+    const fd = new FormData()
+    Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)))
+    if (coverFile) fd.append('cover_image', coverFile)
+
+    const res = await fetch('/api/admin/blog', { method: 'POST', body: fd })
     const data = await res.json()
     setSaving(false)
     if (data.success) {
@@ -51,16 +62,11 @@ export default function NewBlogPost() {
   }
 
   return (
-    <div className="min-h-screen bg-dental-alt pt-20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-dental-alt">
+      <div className="max-w-3xl mx-auto px-6 lg:px-10 py-10">
 
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/blog" className="inline-flex items-center gap-2 text-dental-body hover:text-dental-blue text-sm transition-colors">
-              <ArrowLeft size={14} />Back
-            </Link>
-            <h1 className="text-2xl font-bold text-dental-heading">New Blog Post</h1>
-          </div>
+          <h1 className="text-2xl font-bold text-dental-heading">New Blog Post</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -84,6 +90,33 @@ export default function NewBlogPost() {
                 <option value="">Select a category</option>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+            </div>
+
+            {/* Cover Image */}
+            <div>
+              <label className="form-label">Cover Image</label>
+              <div
+                className="border-2 border-dashed rounded-xl cursor-pointer transition-all hover:border-dental-blue hover:bg-blue-50/30"
+                style={{ borderColor: coverPreview ? '#1B6FC9' : undefined }}
+                onClick={() => fileRef.current?.click()}
+              >
+                {coverPreview ? (
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden">
+                    <img src={coverPreview} alt="cover" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/40 rounded-xl">
+                      <p className="text-white text-sm font-semibold">Click to change</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 flex flex-col items-center gap-2">
+                    <ImageIcon size={28} className="text-dental-border" />
+                    <p className="text-dental-body text-sm">Click to upload a cover image</p>
+                    <p className="text-dental-body text-xs">JPG, PNG, WebP — max 10MB — recommended 1200×630px</p>
+                  </div>
+                )}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverImage(f); e.target.value = '' }} />
             </div>
 
             <div>

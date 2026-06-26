@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
-import { ArrowLeft, FileText, CheckCircle, XCircle, PlusCircle, Pencil } from 'lucide-react'
+import { FileText, CheckCircle, XCircle, PlusCircle } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -21,14 +21,11 @@ export default async function BlogAdmin() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-dental-alt pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-dental-alt">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="inline-flex items-center gap-2 text-dental-body hover:text-dental-blue text-sm transition-colors">
-              <ArrowLeft size={14} />Back
-            </Link>
             <h1 className="text-2xl font-bold text-dental-heading">Blog Posts</h1>
             <span className="bg-dental-blue text-white text-xs font-semibold px-2.5 py-1 rounded-full">{posts?.length ?? 0}</span>
           </div>

@@ -1,8 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, DollarSign, Save, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { DollarSign, Save, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 type Price = {
   id: string
@@ -51,14 +50,11 @@ export default function PricesAdmin() {
   const fmt = (n: number) => '৳' + n.toLocaleString('en-BD')
 
   return (
-    <div className="min-h-screen bg-dental-alt pt-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-dental-alt">
+      <div className="max-w-4xl mx-auto px-6 lg:px-10 py-10">
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="inline-flex items-center gap-2 text-dental-body hover:text-dental-blue text-sm transition-colors">
-              <ArrowLeft size={14} />Back
-            </Link>
             <h1 className="text-2xl font-bold text-dental-heading">Manage Prices</h1>
           </div>
           <button

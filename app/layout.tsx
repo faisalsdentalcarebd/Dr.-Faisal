@@ -1,12 +1,7 @@
 import type { Metadata } from 'next'
 import { MotionConfig } from 'framer-motion'
 import './globals.css'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import CustomCursor from '@/components/ui/CustomCursor'
-import MobileBookingBar from '@/components/ui/MobileBookingBar'
-import JsonLd from '@/components/JsonLd'
-import Preloader from '@/components/Preloader'
+import SiteShell from './SiteShell'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -66,13 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth">
       <body className="font-inter antialiased">
         <MotionConfig reducedMotion="user">
-          <Preloader />
-          <JsonLd />
-          <CustomCursor />
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <MobileBookingBar />
+          <SiteShell>{children}</SiteShell>
         </MotionConfig>
       </body>
     </html>
