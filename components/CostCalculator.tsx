@@ -3,15 +3,32 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { Calculator, ChevronDown, MessageCircle, Info } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
 
-const services = [
-  { id: 'crown', label: 'Crown & Bridge Restoration', unit: 'unit', min: 15000, max: 40000, note: 'Per tooth/unit' },
-  { id: 'implant', label: 'Dental Implant', unit: 'implant', min: 80000, max: 150000, note: 'Per implant (titanium)' },
-  { id: 'ortho', label: 'Fixed Orthodontics (Braces)', unit: 'treatment', min: 40000, max: 100000, note: 'Full treatment, both arches', flat: true },
-  { id: 'rct', label: 'Root Canal Treatment', unit: 'tooth', min: 8000, max: 20000, note: 'Per tooth' },
-  { id: 'scaling', label: 'Dental Scaling & Cleaning', unit: 'session', min: 3000, max: 6000, note: 'Per session' },
-  { id: 'extraction', label: 'Tooth Extraction', unit: 'tooth', min: 3000, max: 8000, note: 'Per tooth' },
-  { id: 'filling', label: 'Tooth-Coloured Filling', unit: 'tooth', min: 2000, max: 8000, note: 'Per tooth (composite)' },
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+type PriceService = {
+  id: string
+  service_id: string
+  label: string
+  unit: string
+  min: number
+  max: number
+  note: string
+  flat?: boolean
+}
+
+const FALLBACK_SERVICES: PriceService[] = [
+  { id: 'crown',      service_id: 'crown',      label: 'Crown & Bridge Restoration',  unit: 'unit',      min: 15000, max: 40000,  note: 'Per tooth/unit' },
+  { id: 'implant',    service_id: 'implant',    label: 'Dental Implant',              unit: 'implant',   min: 80000, max: 150000, note: 'Per implant (titanium)' },
+  { id: 'ortho',      service_id: 'ortho',      label: 'Fixed Orthodontics (Braces)', unit: 'treatment', min: 40000, max: 100000, note: 'Full treatment, both arches', flat: true },
+  { id: 'rct',        service_id: 'rct',        label: 'Root Canal Treatment',        unit: 'tooth',     min: 8000,  max: 20000,  note: 'Per tooth' },
+  { id: 'scaling',    service_id: 'scaling',    label: 'Dental Scaling & Cleaning',   unit: 'session',   min: 3000,  max: 6000,   note: 'Per session' },
+  { id: 'extraction', service_id: 'extraction', label: 'Tooth Extraction',            unit: 'tooth',     min: 3000,  max: 8000,   note: 'Per tooth' },
+  { id: 'filling',    service_id: 'filling',    label: 'Tooth-Coloured Filling',      unit: 'tooth',     min: 2000,  max: 8000,   note: 'Per tooth (composite)' },
 ]
 
 function formatBDT(amount: number) {
@@ -20,9 +37,34 @@ function formatBDT(amount: number) {
 
 export default function CostCalculator() {
   const sectionRef = useRef<HTMLElement>(null)
+  const [services, setServices] = useState<PriceService[]>(FALLBACK_SERVICES)
   const [selectedId, setSelectedId] = useState('implant')
   const [quantity, setQuantity] = useState(1)
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    supabase
+      .from('prices')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setServices(data.map(p => ({
+            id: p.service_id,
+            service_id: p.service_id,
+            label: p.label,
+            unit: p.unit,
+            min: p.min,
+            max: p.max,
+            note: p.note || `Per ${p.unit}`,
+            flat: p.unit === 'treatment',
+          })))
+          if (!data.find((p: PriceService) => p.service_id === 'implant')) {
+            setSelectedId(data[0].service_id)
+          }
+        }
+      })
+  }, [])
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
   const headingScale = useTransform(scrollYProgress, [0, 0.25], [1.18, 1])
@@ -88,7 +130,7 @@ export default function CostCalculator() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           style={{ perspective: 1200, transformStyle: 'preserve-3d' }}
-          className="bg-white rounded-3xl border border-dental-border shadow-card-hover overflow-hidden"
+          className="bg-white rounded-3xl border border-dental-border shadow-card-hover"
         >
           <div className="grid lg:grid-cols-2">
 
@@ -120,7 +162,7 @@ export default function CostCalculator() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -8, scale: 0.97 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-dental-border rounded-2xl shadow-card-hover overflow-hidden"
+                      className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-dental-border rounded-2xl shadow-card-hover overflow-y-auto max-h-64"
                     >
                       {services.map(s => (
                         <button

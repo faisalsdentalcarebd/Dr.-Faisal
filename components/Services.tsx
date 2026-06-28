@@ -1,18 +1,78 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
 import {
   X, Tag, HelpCircle, Calendar, CheckCircle2, Stethoscope,
   Calculator, MessageCircle, Phone, ChevronDown, Info,
   ArrowRight, Crown, Anchor, AlignCenter, Activity,
-  Sparkles, Scissors, ShieldCheck,
+  Sparkles, Scissors, ShieldCheck, type LucideIcon,
 } from 'lucide-react'
 
-// ── Service Data ──────────────────────────────────────────────────────────────
-const SERVICE_DATA = [
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  'crown-bridge-restoration': Crown,
+  'dental-implants': Anchor,
+  'fixed-orthodontics-braces': AlignCenter,
+  'root-canal-treatment': Activity,
+  'scaling-polishing': Sparkles,
+  'tooth-extraction': Scissors,
+  'tooth-filling-restoration': ShieldCheck,
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+type ServiceDisplay = {
+  id: string
+  calcId: string
+  icon: LucideIcon
+  title: string
+  tag: string
+  price: string
+  image: string
+  alt: string
+  shortDesc: string
+  why: string
+  when: string
+  expect: string
+  benefits: string[]
+}
+
+function mapDBService(s: {
+  slug: string; name: string; tag: string; description: string
+  why_needed: string; when_needed: string; benefits: string
+  image_url: string; price_min: number; price_max: number; unit: string
+}): ServiceDisplay {
+  const priceStr = s.price_min && s.price_max
+    ? `৳${s.price_min.toLocaleString('en-BD')} – ৳${s.price_max.toLocaleString('en-BD')} / ${s.unit}`
+    : ''
+  return {
+    id: s.slug,
+    calcId: s.slug,
+    icon: ICON_MAP[s.slug] || Stethoscope,
+    title: s.name,
+    tag: s.tag || '',
+    price: priceStr,
+    image: s.image_url || '/images/services/1. Crown & Bridge.jpg',
+    alt: s.name,
+    shortDesc: s.description || '',
+    why: s.why_needed || '',
+    when: s.when_needed || '',
+    expect: s.description || '',
+    benefits: s.benefits
+      ? s.benefits.split('\n').map((b: string) => b.replace(/^[•\-*]\s*/, '').trim()).filter(Boolean)
+      : [],
+  }
+}
+
+// ── Service Data (fallback) ────────────────────────────────────────────────────
+const HARDCODED_SERVICE_DATA: ServiceDisplay[] = [
   {
     id: 'crown',
     calcId: 'crown',
@@ -121,7 +181,9 @@ const SERVICE_DATA = [
 ]
 
 // ── Inline Calculator ─────────────────────────────────────────────────────────
-const CALC_SERVICES = [
+type CalcService = { id: string; label: string; unit: string; min: number; max: number; note: string; flat?: boolean }
+
+const FALLBACK_CALC_SERVICES: CalcService[] = [
   { id: 'crown',      label: 'Crown & Bridge Restoration',   unit: 'unit',      min: 15000,  max: 40000,  note: 'Per tooth/unit' },
   { id: 'implant',    label: 'Dental Implant',               unit: 'implant',   min: 80000,  max: 150000, note: 'Per implant (titanium)' },
   { id: 'ortho',      label: 'Fixed Orthodontics (Braces)',  unit: 'treatment', min: 40000,  max: 100000, note: 'Full treatment, both arches', flat: true },
@@ -133,12 +195,14 @@ const CALC_SERVICES = [
 
 function fmt(n: number) { return '৳' + n.toLocaleString('en-BD') }
 
-function InlineCalculator({ preselectedId }: { preselectedId: string }) {
-  const [selectedId, setSelectedId] = useState(preselectedId)
+function InlineCalculator({ preselectedId, calcServices }: { preselectedId: string; calcServices: CalcService[] }) {
+  const services = calcServices.length > 0 ? calcServices : FALLBACK_CALC_SERVICES
+  const firstId = services.find(s => s.id === preselectedId) ? preselectedId : services[0]?.id || preselectedId
+  const [selectedId, setSelectedId] = useState(firstId)
   const [quantity, setQuantity] = useState(1)
   const [dropOpen, setDropOpen] = useState(false)
 
-  const selected = CALC_SERVICES.find(s => s.id === selectedId)!
+  const selected = services.find(s => s.id === selectedId) || services[0]!
   const qty = selected.flat ? 1 : Math.max(1, quantity)
   const minTotal = selected.min * qty
   const maxTotal = selected.max * qty
@@ -175,9 +239,9 @@ function InlineCalculator({ preselectedId }: { preselectedId: string }) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-white border border-dental-border rounded-xl shadow-card-hover overflow-hidden"
+                  className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-white border border-dental-border rounded-xl shadow-card-hover overflow-y-auto max-h-56"
                 >
-                  {CALC_SERVICES.map(s => (
+                  {services.map(s => (
                     <button
                       key={s.id}
                       onClick={() => { setSelectedId(s.id); setQuantity(1); setDropOpen(false) }}
@@ -274,7 +338,7 @@ function InlineCalculator({ preselectedId }: { preselectedId: string }) {
 function ServiceRow({
   service, index, onOpen,
 }: {
-  service: typeof SERVICE_DATA[0]
+  service: ServiceDisplay
   index: number
   onOpen: () => void
 }) {
@@ -341,9 +405,10 @@ function ServiceRow({
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 function ServiceModal({
-  service, onClose,
+  service, calcServices, onClose,
 }: {
-  service: typeof SERVICE_DATA[0] | null
+  service: ServiceDisplay | null
+  calcServices: CalcService[]
   onClose: () => void
 }) {
   const [showCalc, setShowCalc] = useState(false)
@@ -447,7 +512,7 @@ function ServiceModal({
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                     className="overflow-hidden"
                   >
-                    <InlineCalculator preselectedId={service.calcId} />
+                    <InlineCalculator preselectedId={service.calcId} calcServices={calcServices} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -488,7 +553,38 @@ function ServiceModal({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function Services() {
-  const [activeService, setActiveService] = useState<typeof SERVICE_DATA[0] | null>(null)
+  const [serviceData, setServiceData] = useState<ServiceDisplay[]>(HARDCODED_SERVICE_DATA)
+  const [calcServices, setCalcServices] = useState<CalcService[]>(FALLBACK_CALC_SERVICES)
+  const [activeService, setActiveService] = useState<ServiceDisplay | null>(null)
+
+  useEffect(() => {
+    // Fetch services for display
+    supabase
+      .from('services')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) setServiceData(data.map(mapDBService))
+      })
+    // Fetch prices for inline calculator
+    supabase
+      .from('prices')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setCalcServices(data.map((p: { service_id: string; label: string; unit: string; min: number; max: number; note: string }) => ({
+            id: p.service_id,
+            label: p.label,
+            unit: p.unit,
+            min: p.min,
+            max: p.max,
+            note: p.note || `Per ${p.unit}`,
+            flat: p.unit === 'treatment',
+          })))
+        }
+      })
+  }, [])
 
   return (
     <>
@@ -535,7 +631,7 @@ export default function Services() {
 
           {/* Cinema Stack rows */}
           <div>
-            {SERVICE_DATA.map((service, i) => (
+            {serviceData.map((service, i) => (
               <ServiceRow
                 key={service.id}
                 service={service}
@@ -549,7 +645,7 @@ export default function Services() {
       </section>
 
       {/* Modal */}
-      <ServiceModal service={activeService} onClose={() => setActiveService(null)} />
+      <ServiceModal service={activeService} calcServices={calcServices} onClose={() => setActiveService(null)} />
     </>
   )
 }
