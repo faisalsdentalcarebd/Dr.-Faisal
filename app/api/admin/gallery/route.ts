@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -18,8 +17,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await req.formData()
   const file = formData.get('file') as File
@@ -50,8 +49,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id, filename } = await req.json()
   await supabase.storage.from('gallery').remove([filename])

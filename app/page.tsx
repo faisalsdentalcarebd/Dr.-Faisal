@@ -11,6 +11,7 @@ import Blog from '@/components/Blog'
 import BookingForm from '@/components/BookingForm'
 import FAQ from '@/components/FAQ'
 import Gallery from '@/components/Gallery'
+import BeforeAfter from '@/components/BeforeAfter'
 
 export const metadata: Metadata = {
   title: "Prosthodontist in Gulshan Dhaka | Faisal's Dental Care",
@@ -48,6 +49,7 @@ export default function HomePage() {
       <BookingForm />
       <FAQ />
       <Gallery />
+      <BeforeAfter />
     </>
   )
 }

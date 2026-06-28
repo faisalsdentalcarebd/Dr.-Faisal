@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -26,8 +25,8 @@ async function uploadCover(file: File, existingUrl?: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const contentType = req.headers.get('content-type') ?? ''
   let title = '', slug = '', excerpt = '', content = '', category = '', published = false
@@ -64,8 +63,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
   const { id, title, slug, excerpt, content, category, published } = body
@@ -82,8 +81,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await req.json()
   await supabase.from('blog_posts').delete().eq('id', id)

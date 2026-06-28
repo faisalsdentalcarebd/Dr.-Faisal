@@ -451,8 +451,11 @@ export default function ServicesAdmin() {
                 </div>
                 <div>
                   <label className="form-label">Per (unit)</label>
-                  <input type="text" value={form.unit} onChange={e => set('unit', e.target.value)}
-                    placeholder="treatment" className="form-input" />
+                  <select value={form.unit} onChange={e => set('unit', e.target.value)} className="form-input">
+                    {['tooth', 'session', 'treatment', 'implant', 'unit', 'arch', 'sitting', 'jaw', 'visit'].map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
