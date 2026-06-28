@@ -562,11 +562,11 @@ export default function Services() {
       supabase.from('services').select('*').order('sort_order', { ascending: true }),
       supabase.from('prices').select('*').order('label', { ascending: true }),
     ]).then(([{ data: svcData }, { data: priceData }]) => {
-      // Build price lookup by service_id (matches slug in services table)
-      const priceMap: Record<string, { min: number; max: number; unit: string; note: string }> = {}
+      // Build price lookup by label (reliable — both tables share same label text)
+      const priceLabelMap: Record<string, { min: number; max: number; unit: string }> = {}
       if (priceData && priceData.length > 0) {
         priceData.forEach((p: { service_id: string; label: string; unit: string; min: number; max: number; note: string }) => {
-          priceMap[p.service_id] = { min: p.min, max: p.max, unit: p.unit, note: p.note }
+          priceLabelMap[p.label] = { min: p.min, max: p.max, unit: p.unit }
         })
         setCalcServices(priceData.map((p: { service_id: string; label: string; unit: string; min: number; max: number; note: string }) => ({
           id: p.service_id,
@@ -580,7 +580,7 @@ export default function Services() {
       }
       if (svcData && svcData.length > 0) {
         setServiceData(svcData.map(s => {
-          const p = priceMap[s.slug]
+          const p = priceLabelMap[s.name]
           return mapDBService({
             ...s,
             price_min: p?.min ?? s.price_min,
