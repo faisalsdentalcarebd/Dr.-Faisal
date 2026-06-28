@@ -558,32 +558,38 @@ export default function Services() {
   const [activeService, setActiveService] = useState<ServiceDisplay | null>(null)
 
   useEffect(() => {
-    // Fetch services for display
-    supabase
-      .from('services')
-      .select('*')
-      .order('sort_order', { ascending: true })
-      .then(({ data }) => {
-        if (data && data.length > 0) setServiceData(data.map(mapDBService))
-      })
-    // Fetch prices for inline calculator
-    supabase
-      .from('prices')
-      .select('*')
-      .order('sort_order', { ascending: true })
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setCalcServices(data.map((p: { service_id: string; label: string; unit: string; min: number; max: number; note: string }) => ({
-            id: p.service_id,
-            label: p.label,
-            unit: p.unit,
-            min: p.min,
-            max: p.max,
-            note: p.note || `Per ${p.unit}`,
-            flat: p.unit === 'treatment',
-          })))
-        }
-      })
+    Promise.all([
+      supabase.from('services').select('*').order('sort_order', { ascending: true }),
+      supabase.from('prices').select('*').order('sort_order', { ascending: true }),
+    ]).then(([{ data: svcData }, { data: priceData }]) => {
+      // Build price lookup by service_id (matches slug in services table)
+      const priceMap: Record<string, { min: number; max: number; unit: string; note: string }> = {}
+      if (priceData && priceData.length > 0) {
+        priceData.forEach((p: { service_id: string; label: string; unit: string; min: number; max: number; note: string }) => {
+          priceMap[p.service_id] = { min: p.min, max: p.max, unit: p.unit, note: p.note }
+        })
+        setCalcServices(priceData.map((p: { service_id: string; label: string; unit: string; min: number; max: number; note: string }) => ({
+          id: p.service_id,
+          label: p.label,
+          unit: p.unit,
+          min: p.min,
+          max: p.max,
+          note: p.note || `Per ${p.unit}`,
+          flat: p.unit === 'treatment',
+        })))
+      }
+      if (svcData && svcData.length > 0) {
+        setServiceData(svcData.map(s => {
+          const p = priceMap[s.slug]
+          return mapDBService({
+            ...s,
+            price_min: p?.min ?? s.price_min,
+            price_max: p?.max ?? s.price_max,
+            unit: p?.unit ?? s.unit,
+          })
+        }))
+      }
+    })
   }, [])
 
   return (
