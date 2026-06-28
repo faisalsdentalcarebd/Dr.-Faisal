@@ -46,7 +46,7 @@ export default function CostCalculator() {
     supabase
       .from('prices')
       .select('*')
-      .order('sort_order', { ascending: true })
+      .order('label', { ascending: true })
       .then(({ data }) => {
         if (data && data.length > 0) {
           setServices(data.map(p => ({

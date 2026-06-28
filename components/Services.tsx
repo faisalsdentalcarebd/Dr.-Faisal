@@ -560,7 +560,7 @@ export default function Services() {
   useEffect(() => {
     Promise.all([
       supabase.from('services').select('*').order('sort_order', { ascending: true }),
-      supabase.from('prices').select('*').order('sort_order', { ascending: true }),
+      supabase.from('prices').select('*').order('label', { ascending: true }),
     ]).then(([{ data: svcData }, { data: priceData }]) => {
       // Build price lookup by service_id (matches slug in services table)
       const priceMap: Record<string, { min: number; max: number; unit: string; note: string }> = {}
