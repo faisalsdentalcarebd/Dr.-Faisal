@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { LayoutDashboard, CalendarDays, FileText, ImageIcon, Stethoscope, DollarSign, ExternalLink, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, FileText, ImageIcon, Stethoscope, DollarSign, Settings, ExternalLink, LogOut, Menu, X } from 'lucide-react'
 
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/admin/services', label: 'Services', icon: Stethoscope, exact: false },
   { href: '/admin/prices', label: 'Prices', icon: DollarSign, exact: false },
   // { href: '/admin/bookings', label: 'Bookings', icon: CalendarDays, exact: false }, // enable when booking form is added
+  { href: '/admin/settings', label: 'Settings', icon: Settings, exact: false },
 ]
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {

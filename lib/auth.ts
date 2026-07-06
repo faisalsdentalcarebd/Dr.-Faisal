@@ -1,5 +1,12 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { createClient } from '@supabase/supabase-js'
+import bcrypt from 'bcryptjs'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,13 +17,20 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (
-          credentials?.email === process.env.ADMIN_EMAIL &&
-          credentials?.password === process.env.ADMIN_PASSWORD
-        ) {
-          return { id: '1', name: 'Admin', email: credentials!.email }
-        }
-        return null
+        if (!credentials?.email || !credentials?.password) return null
+
+        const { data: admin } = await supabaseAdmin
+          .from('admin_users')
+          .select('id, email, password_hash')
+          .eq('email', credentials.email.toLowerCase().trim())
+          .single()
+
+        if (!admin) return null
+
+        const valid = await bcrypt.compare(credentials.password, admin.password_hash)
+        if (!valid) return null
+
+        return { id: admin.id, name: 'Admin', email: admin.email }
       },
     }),
   ],
