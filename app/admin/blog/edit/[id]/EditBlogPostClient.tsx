@@ -55,28 +55,72 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selected = textarea.value.substring(start, end)
+    const text = textarea.value
+    const selected = text.substring(start, end)
 
     let replacement = ''
+    
     if (type === 'bold') {
-      replacement = `**${selected || 'bold text'}**`
+      if (selected.startsWith('**') && selected.endsWith('**')) {
+        replacement = selected.slice(2, -2)
+      } else {
+        const before = text.substring(start - 2, start)
+        const after = text.substring(end, end + 2)
+        if (before === '**' && after === '**') {
+          textarea.setSelectionRange(start - 2, end + 2)
+          replacement = selected
+        } else {
+          replacement = `**${selected || 'bold text'}**`
+        }
+      }
     } else if (type === 'italic') {
-      replacement = `_${selected || 'italic text'}_`
+      if (selected.startsWith('_') && selected.endsWith('_')) {
+        replacement = selected.slice(1, -1)
+      } else {
+        const before = text.substring(start - 1, start)
+        const after = text.substring(end, end + 1)
+        if (before === '_' && after === '_') {
+          textarea.setSelectionRange(start - 1, end + 1)
+          replacement = selected
+        } else {
+          replacement = `_${selected || 'italic text'}_`
+        }
+      }
     } else if (type === 'underline') {
-      replacement = `<u>${selected || 'underlined text'}</u>`
+      if (selected.startsWith('<u>') && selected.endsWith('</u>')) {
+        replacement = selected.slice(3, -4)
+      } else {
+        const before = text.substring(start - 3, start)
+        const after = text.substring(end, end + 4)
+        if (before === '<u>' && after === '</u>') {
+          textarea.setSelectionRange(start - 3, end + 4)
+          replacement = selected
+        } else {
+          replacement = `<u>${selected || 'underlined text'}</u>`
+        }
+      }
     } else if (type === 'h2') {
-      replacement = `\n## ${selected || 'Heading'}\n`
+      if (selected.startsWith('## ')) {
+        replacement = selected.slice(3)
+      } else {
+        replacement = `\n## ${selected || 'Heading'}\n`
+      }
     } else if (type === 'h3') {
-      replacement = `\n### ${selected || 'Subheading'}\n`
+      if (selected.startsWith('### ')) {
+        replacement = selected.slice(4)
+      } else {
+        replacement = `\n### ${selected || 'Subheading'}\n`
+      }
     } else if (type === 'list') {
-      replacement = `\n- ${selected || 'List item'}\n`
+      if (selected.startsWith('- ')) {
+        replacement = selected.slice(2)
+      } else {
+        replacement = `\n- ${selected || 'List item'}\n`
+      }
     }
 
-    // Focus first so execCommand targets this textarea
     textarea.focus({ preventScroll: true })
-    // execCommand integrates with browser undo history — Ctrl+Z will work
     document.execCommand('insertText', false, replacement)
-    // Sync React state from textarea's updated value
     setForm(prev => ({ ...prev, content: textarea.value }))
 
     setTimeout(() => {
@@ -275,8 +319,9 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
 
               <textarea 
                 ref={textareaRef}
-                value={form.content} 
+                defaultValue={initialPost.content || ''}
                 onChange={e => set('content', e.target.value)}
+                onInput={e => set('content', e.currentTarget.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Write the full blog post here..."
                 rows={15} 
