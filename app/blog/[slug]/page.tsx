@@ -278,13 +278,35 @@ export default async function BlogPostPage({ params }: Props) {
           )}
           <div className="prose prose-lg max-w-none">
             {(() => {
-              const renderFormattedText = (text: string) => {
-                const parts = text.split(/(\*\*.*?\*\*)/g)
-                return parts.map((part, idx) => {
-                  if (part.startsWith('**') && part.endsWith('**')) {
-                    return <strong key={idx} className="font-bold text-dental-heading">{part.slice(2, -2)}</strong>
+              const renderItalics = (text: string): any[] => {
+                const italicParts = text.split(/(_.*?_)/g)
+                return italicParts.map((iPart, iIdx) => {
+                  if (iPart.startsWith('_') && iPart.endsWith('_')) {
+                    return <em key={`i-${iIdx}`} className="italic">{iPart.slice(1, -1)}</em>
                   }
-                  return part
+                  return iPart
+                })
+              }
+
+              const renderInlineStyles = (text: string): any[] => {
+                const boldParts = text.split(/(\*\*.*?\*\*)/g)
+                return boldParts.flatMap((bPart, bIdx) => {
+                  if (bPart.startsWith('**') && bPart.endsWith('**')) {
+                    const content = bPart.slice(2, -2)
+                    return [<strong key={`b-${bIdx}`} className="font-bold text-dental-heading">{renderItalics(content)}</strong>]
+                  }
+                  return renderItalics(bPart)
+                })
+              }
+
+              const renderFormattedText = (text: string): any => {
+                const uParts = text.split(/(<u>.*?<\/u>)/g)
+                return uParts.flatMap((uPart, uIdx) => {
+                  if (uPart.startsWith('<u>') && uPart.endsWith('</u>')) {
+                    const content = uPart.slice(3, -4)
+                    return [<u key={`u-${uIdx}`}>{renderInlineStyles(content)}</u>]
+                  }
+                  return renderInlineStyles(uPart)
                 })
               }
 
