@@ -66,12 +66,57 @@ export async function PUT(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const { id, title, slug, excerpt, content, category, published } = body
+  const contentType = req.headers.get('content-type') ?? ''
+  let id = '', title = '', slug = '', excerpt = '', content = '', category = '', published = false
+  let cover_image_url = ''
+
+  if (contentType.includes('multipart/form-data')) {
+    const fd = await req.formData()
+    id = (fd.get('id') as string) || ''
+    title = (fd.get('title') as string) || ''
+    slug = (fd.get('slug') as string) || ''
+    excerpt = (fd.get('excerpt') as string) || ''
+    content = (fd.get('content') as string) || ''
+    category = (fd.get('category') as string) || ''
+    published = fd.get('published') === 'true'
+    
+    const coverFile = fd.get('cover_image') as File | null
+    if (coverFile && coverFile.size > 0) {
+      try {
+        const { data: oldPost } = await supabase
+          .from('blog_posts')
+          .select('cover_image_url')
+          .eq('id', id)
+          .maybeSingle()
+        
+        cover_image_url = await uploadCover(coverFile, oldPost?.cover_image_url)
+      } catch (e: unknown) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 })
+      }
+    } else {
+      const { data: oldPost } = await supabase
+        .from('blog_posts')
+        .select('cover_image_url')
+        .eq('id', id)
+        .maybeSingle()
+      cover_image_url = oldPost?.cover_image_url || ''
+    }
+  } else {
+    const body = await req.json()
+    ;({ id, title, slug, excerpt, content, category, published } = body)
+    const { data: oldPost } = await supabase
+      .from('blog_posts')
+      .select('cover_image_url')
+      .eq('id', id)
+      .maybeSingle()
+    cover_image_url = oldPost?.cover_image_url || ''
+  }
+
+  if (!id || !title || !slug) return NextResponse.json({ error: 'ID, title and slug are required' }, { status: 400 })
 
   const { data, error } = await supabase
     .from('blog_posts')
-    .update({ title, slug, excerpt, content, category, published: !!published })
+    .update({ title, slug, excerpt, content, category, published: !!published, cover_image_url })
     .eq('id', id)
     .select()
     .single()

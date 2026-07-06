@@ -277,31 +277,49 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           )}
           <div className="prose prose-lg max-w-none">
-            {paragraphs.map((para, i) => {
-              if (para.startsWith('## ')) {
-                return <h2 key={i} className="text-2xl font-bold text-dental-heading mt-8 mb-4">{para.replace('## ', '')}</h2>
+            {(() => {
+              const renderFormattedText = (text: string) => {
+                const parts = text.split(/(\*\*.*?\*\*)/g)
+                return parts.map((part, idx) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={idx} className="font-bold text-dental-heading">{part.slice(2, -2)}</strong>
+                  }
+                  return part
+                })
               }
-              if (para.startsWith('**') && para.endsWith('**')) {
-                return <h3 key={i} className="text-lg font-bold text-dental-heading mt-6 mb-2">{para.replace(/\*\*/g, '')}</h3>
-              }
-              if (para.includes('\n-')) {
-                const lines = para.split('\n')
-                return (
-                  <div key={i}>
-                    {lines[0] && <p className="text-dental-body leading-relaxed mb-2">{lines[0]}</p>}
-                    <ul className="space-y-1 mb-4 ml-4">
-                      {lines.slice(1).filter(l => l.startsWith('-')).map((l, j) => (
-                        <li key={j} className="text-dental-body text-sm flex items-start gap-2">
-                          <span className="text-dental-blue mt-1">•</span>
-                          <span>{l.replace(/^-\s/, '')}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              }
-              return <p key={i} className="text-dental-body leading-relaxed mb-4">{para}</p>
-            })}
+
+              return paragraphs.map((para, i) => {
+                if (para.startsWith('## ')) {
+                  return <h2 key={i} className="text-2xl font-bold text-dental-heading mt-8 mb-4">{renderFormattedText(para.replace('## ', ''))}</h2>
+                }
+                if (para.startsWith('### ')) {
+                  return <h3 key={i} className="text-xl font-bold text-dental-heading mt-6 mb-3">{renderFormattedText(para.replace('### ', ''))}</h3>
+                }
+                if (para.startsWith('#### ')) {
+                  return <h4 key={i} className="text-lg font-bold text-dental-heading mt-4 mb-2">{renderFormattedText(para.replace('#### ', ''))}</h4>
+                }
+                if (para.startsWith('**') && para.endsWith('**')) {
+                  return <h3 key={i} className="text-lg font-bold text-dental-heading mt-6 mb-2">{renderFormattedText(para.replace(/\*\*/g, ''))}</h3>
+                }
+                if (para.includes('\n-')) {
+                  const lines = para.split('\n')
+                  return (
+                    <div key={i}>
+                      {lines[0] && <p className="text-dental-body leading-relaxed mb-2">{renderFormattedText(lines[0])}</p>}
+                      <ul className="space-y-1.5 mb-4 ml-4">
+                        {lines.slice(1).filter(l => l.startsWith('-')).map((l, j) => (
+                          <li key={j} className="text-dental-body text-sm flex items-start gap-2">
+                            <span className="text-dental-blue mt-1.5">•</span>
+                            <span>{renderFormattedText(l.replace(/^-\s/, ''))}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                }
+                return <p key={i} className="text-dental-body leading-relaxed mb-4">{renderFormattedText(para)}</p>
+              })
+            })()}
           </div>
 
           {/* Author Card */}

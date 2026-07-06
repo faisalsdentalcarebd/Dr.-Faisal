@@ -3,22 +3,38 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Save, Loader2, CheckCircle, XCircle, ImageIcon } from 'lucide-react'
+import { Save, Trash2, Loader2, CheckCircle, XCircle, ImageIcon } from 'lucide-react'
 
 const CATEGORIES = ['General Dentistry', 'Implants', 'Orthodontics', 'Cosmetic', 'Oral Health', 'Patient Tips']
 
-function slugify(text: string) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+interface EditBlogPostClientProps {
+  initialPost: {
+    id: string
+    title: string
+    slug: string
+    excerpt: string
+    content: string
+    category: string
+    published: boolean
+    cover_image_url: string
+  }
 }
 
-export default function NewBlogPost() {
+export default function EditBlogPostClient({ initialPost }: EditBlogPostClientProps) {
   const router = useRouter()
   const [form, setForm] = useState({
-    title: '', slug: '', excerpt: '', content: '', category: '', published: false,
+    id: initialPost.id,
+    title: initialPost.title,
+    slug: initialPost.slug,
+    excerpt: initialPost.excerpt || '',
+    content: initialPost.content || '',
+    category: initialPost.category || '',
+    published: initialPost.published || false,
   })
   const [coverFile, setCoverFile] = useState<File | null>(null)
-  const [coverPreview, setCoverPreview] = useState<string>('')
+  const [coverPreview, setCoverPreview] = useState<string>(initialPost.cover_image_url || '')
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -28,10 +44,6 @@ export default function NewBlogPost() {
   }
 
   const set = (k: string, v: string | boolean) => setForm(prev => ({ ...prev, [k]: v }))
-
-  const handleTitleChange = (v: string) => {
-    setForm(prev => ({ ...prev, title: v, slug: slugify(v) }))
-  }
 
   const handleCoverImage = (file: File) => {
     if (!file.type.startsWith('image/')) { showToast('Images only', false); return }
@@ -50,14 +62,43 @@ export default function NewBlogPost() {
     Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)))
     if (coverFile) fd.append('cover_image', coverFile)
 
-    const res = await fetch('/api/admin/blog', { method: 'POST', body: fd })
-    const data = await res.json()
-    setSaving(false)
-    if (data.success) {
-      showToast('Post created!')
-      setTimeout(() => router.push('/admin/blog'), 1200)
-    } else {
-      showToast(data.error || 'Failed to save', false)
+    try {
+      const res = await fetch('/api/admin/blog', { method: 'PUT', body: fd })
+      const data = await res.json()
+      setSaving(false)
+      if (data.success) {
+        showToast('Post updated successfully!')
+        setTimeout(() => router.push('/admin/blog'), 1200)
+      } else {
+        showToast(data.error || 'Failed to save', false)
+      }
+    } catch (err) {
+      setSaving(false)
+      showToast('An error occurred while saving', false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) return
+    setDeleting(true)
+
+    try {
+      const res = await fetch('/api/admin/blog', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: form.id })
+      })
+      const data = await res.json()
+      setDeleting(false)
+      if (data.success) {
+        showToast('Post deleted successfully!')
+        setTimeout(() => router.push('/admin/blog'), 1200)
+      } else {
+        showToast(data.error || 'Failed to delete', false)
+      }
+    } catch (err) {
+      setDeleting(false)
+      showToast('An error occurred while deleting', false)
     }
   }
 
@@ -66,14 +107,23 @@ export default function NewBlogPost() {
       <div className="max-w-3xl mx-auto px-6 lg:px-10 py-10">
 
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-dental-heading">New Blog Post</h1>
+          <h1 className="text-2xl font-bold text-dental-heading">Edit Blog Post</h1>
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={handleDelete}
+            className="flex items-center gap-2 text-red-500 hover:text-red-700 text-sm font-semibold transition-colors"
+          >
+            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            Delete Post
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="bg-white rounded-2xl border border-dental-border p-6 space-y-5">
             <div>
               <label className="form-label">Title *</label>
-              <input type="text" required value={form.title} onChange={e => handleTitleChange(e.target.value)}
+              <input type="text" required value={form.title} onChange={e => set('title', e.target.value)}
                 placeholder="e.g. Why Dental Implants Are Worth It" className="form-input" />
             </div>
 
@@ -81,7 +131,7 @@ export default function NewBlogPost() {
               <label className="form-label">URL Slug *</label>
               <input type="text" required value={form.slug} onChange={e => set('slug', e.target.value)}
                 placeholder="why-dental-implants-are-worth-it" className="form-input font-mono text-sm" />
-              <p className="text-dental-body text-xs mt-1">Auto-generated from title. This is the URL: /blog/{form.slug || 'your-slug'}</p>
+              <p className="text-dental-body text-xs mt-1">This forms the link address: /blog/{form.slug || 'your-slug'}</p>
             </div>
 
             <div>
@@ -162,9 +212,9 @@ export default function NewBlogPost() {
           <div className="flex items-center gap-4">
             <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2 !py-3 !px-6">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              {saving ? 'Saving...' : 'Save Post'}
+              {saving ? 'Updating...' : 'Save Changes'}
             </button>
-            <Link href="/admin/blog" className="text-dental-body hover:text-dental-heading text-sm transition-colors">
+            <Link href="/admin/blog" className="text-dental-body hover:text-dental-heading text-sm transition-colors font-medium">
               Cancel
             </Link>
           </div>

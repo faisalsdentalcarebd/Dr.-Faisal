@@ -1,9 +1,9 @@
-﻿export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import Link from 'next/link'
-import { FileText, CheckCircle, XCircle, PlusCircle } from 'lucide-react'
+import { FileText, CheckCircle, XCircle, PlusCircle, Pencil } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -49,19 +49,27 @@ export default async function BlogAdmin() {
                     )}
                     <p className="text-dental-body text-xs mt-1 font-mono opacity-60">/blog/{post.slug}</p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {post.published ? (
-                      <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-600 text-xs px-3 py-1.5 rounded-full font-semibold border border-green-200">
-                        <CheckCircle size={11} />Published
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 text-xs px-3 py-1.5 rounded-full font-semibold border border-gray-200">
-                        <XCircle size={11} />Draft
-                      </span>
-                    )}
-                    <div className="text-dental-body text-xs">
-                      {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex flex-col items-end gap-1.5">
+                      {post.published ? (
+                        <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-600 text-xs px-3 py-1.5 rounded-full font-semibold border border-green-200">
+                          <CheckCircle size={11} />Published
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-500 text-xs px-3 py-1.5 rounded-full font-semibold border border-gray-200">
+                          <XCircle size={11} />Draft
+                        </span>
+                      )}
+                      <div className="text-dental-body text-[11px] opacity-75">
+                        {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
                     </div>
+                    <Link
+                      href={`/admin/blog/edit/${post.id}`}
+                      className="inline-flex items-center gap-1.5 bg-dental-alt hover:bg-dental-blue hover:text-white text-dental-heading hover:border-dental-blue text-xs px-3.5 py-2.5 rounded-xl transition-all duration-200 border border-dental-border shadow-sm font-semibold"
+                    >
+                      <Pencil size={12} /> Edit
+                    </Link>
                   </div>
                 </div>
               ))}
