@@ -4,6 +4,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Calendar, Clock, Tag, Phone, MapPin } from 'lucide-react'
 import { blogPosts } from '@/lib/data'
+import { supabase } from '@/lib/supabase'
+
+export const dynamic = 'force-dynamic'
 
 const articleContent: Record<string, string> = {
   'find-dentist-near-me-gulshan-dhaka': `
@@ -136,14 +139,29 @@ interface Props {
   params: { slug: string }
 }
 
-export async function generateStaticParams() {
-  return blogPosts.map((p) => ({ slug: p.slug }))
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = blogPosts.find((p) => p.slug === params.slug)
+  let post: any = null
+  
+  const { data: dbPost } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', params.slug)
+    .eq('published', true)
+    .maybeSingle()
+
+  if (dbPost) {
+    post = {
+      title: dbPost.title,
+      slug: dbPost.slug,
+      excerpt: dbPost.excerpt,
+      date: dbPost.created_at,
+    }
+  } else {
+    post = blogPosts.find((p) => p.slug === params.slug)
+  }
+
   if (!post) return {}
-  const desc = (post as any).metaDescription ?? post.excerpt ?? undefined
+  const desc = post.metaDescription ?? post.excerpt ?? undefined
   return {
     title: `${post.title} | Faisal's Dental Care`,
     description: desc,
@@ -176,11 +194,42 @@ const categoryColors: Record<string, string> = {
   'Local Guide': 'bg-violet-50 text-violet-600 border-violet-200',
 }
 
-export default function BlogPostPage({ params }: Props) {
-  const post = blogPosts.find((p) => p.slug === params.slug)
-  if (!post) notFound()
+export default async function BlogPostPage({ params }: Props) {
+  let post: any = null
+  let content = ''
+  
+  const { data: dbPost } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', params.slug)
+    .eq('published', true)
+    .maybeSingle()
 
-  const content = articleContent[params.slug] || post.excerpt || ''
+  if (dbPost) {
+    post = {
+      id: dbPost.id,
+      title: dbPost.title,
+      slug: dbPost.slug,
+      category: dbPost.category,
+      date: dbPost.created_at,
+      excerpt: dbPost.excerpt,
+      image: dbPost.cover_image_url || null,
+      imageAlt: dbPost.title,
+    }
+    content = dbPost.content || ''
+  } else {
+    const mockPost = blogPosts.find((p) => p.slug === params.slug)
+    if (!mockPost) notFound()
+    post = mockPost
+    content = articleContent[params.slug] || mockPost.excerpt || ''
+  }
+
+  const postDate = post.date || post.created_at
+  const postReadTime = post.readTime || (() => {
+    const words = content.trim().split(/\s+/).length
+    return `${Math.max(1, Math.ceil(words / 200))} min read`
+  })()
+
   const paragraphs = content.trim().split('\n\n')
 
   return (
@@ -193,9 +242,9 @@ export default function BlogPostPage({ params }: Props) {
             Back to Blog
           </Link>
 
-          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full border mb-4 ${categoryColors[post.category] || ''}`}>
+          <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full border mb-4 ${categoryColors[post.category || ''] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
             <Tag size={9} />
-            {post.category}
+            {post.category || 'Patient Tips'}
           </span>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-dental-heading leading-tight mb-5">
@@ -204,9 +253,9 @@ export default function BlogPostPage({ params }: Props) {
 
           <div className="flex items-center gap-5 text-xs text-dental-body">
             <span className="flex items-center gap-1.5"><Calendar size={11} />
-              {new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              {new Date(postDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
-            <span className="flex items-center gap-1.5"><Clock size={11} />{post.readTime}</span>
+            <span className="flex items-center gap-1.5"><Clock size={11} />{postReadTime}</span>
             <span className="text-dental-blue font-semibold">Dr. Faisal · Gulshan-1, Dhaka</span>
           </div>
         </div>

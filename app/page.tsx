@@ -13,6 +13,10 @@ import FAQ from '@/components/FAQ'
 import Gallery from '@/components/Gallery'
 import BeforeAfter from '@/components/BeforeAfter'
 
+import { supabase } from '@/lib/supabase'
+
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Prosthodontist in Gulshan Dhaka | Faisal's Dental Care",
   description:
@@ -34,7 +38,14 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://faisalsdentalcare.com' },
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
+    .limit(3)
+
   return (
     <>
       <Hero />
@@ -45,7 +56,7 @@ export default function HomePage() {
       <VideoSection />
       <About />
       <Testimonials />
-      <Blog />
+      <Blog posts={posts || []} />
       <BookingForm />
       <FAQ />
       <Gallery />

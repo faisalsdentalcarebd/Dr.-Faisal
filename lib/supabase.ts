@@ -24,6 +24,7 @@ export type BlogPost = {
   content: string | null
   category: string | null
   published: boolean
+  cover_image_url?: string
   created_at: string
 }
 

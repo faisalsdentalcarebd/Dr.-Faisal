@@ -1,5 +1,8 @@
-import type { Metadata } from 'next'
+import { Metadata } from 'next'
+import { supabase } from '@/lib/supabase'
 import BlogPageClient from './BlogPageClient'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: "Dental Health Tips & Guides | Faisal's Dental Care Dhaka",
@@ -24,6 +27,12 @@ export const metadata: Metadata = {
   },
 }
 
-export default function BlogPage() {
-  return <BlogPageClient />
+export default async function BlogPage() {
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
+
+  return <BlogPageClient initialPosts={posts || []} />
 }

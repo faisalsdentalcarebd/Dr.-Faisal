@@ -34,13 +34,13 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
             alt="Faisal's Dental Care"
             style={{ width: 140, height: 'auto', filter: 'brightness(0) invert(1)' }}
           />
-          <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#475569' }}>Admin Panel</div>
+          <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#94a3b8' }}>Admin Panel</div>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-0.5">
-        <p className="text-xs font-semibold uppercase tracking-widest px-4 mb-3" style={{ color: '#334155' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest px-4 mb-3" style={{ color: '#64748b' }}>
           Menu
         </p>
         {NAV.map(({ href, label, icon: Icon, exact }) => {
@@ -50,12 +50,11 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
               key={href}
               href={href}
               onClick={onNav}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
-              style={{
-                background: active ? 'rgba(27,111,201,0.12)' : 'transparent',
-                color: active ? '#1B6FC9' : '#64748b',
-                borderLeft: active ? '3px solid #1B6FC9' : '3px solid transparent',
-              }}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                active 
+                  ? 'text-dental-blue bg-blue-500/10 border-l-[3px] border-dental-blue' 
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border-l-[3px] border-transparent'
+              }`}
             >
               <Icon size={17} />
               {label}
@@ -70,16 +69,14 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
-          style={{ color: '#475569' }}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-400 hover:text-slate-200 hover:bg-slate-800/30"
         >
           <ExternalLink size={16} />
           View Website
         </a>
         <a
           href="/api/auth/signout"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:text-red-400"
-          style={{ color: '#475569' }}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-400 hover:text-red-400 hover:bg-slate-800/30"
         >
           <LogOut size={16} />
           Sign Out
