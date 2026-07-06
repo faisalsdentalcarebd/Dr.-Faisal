@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,6 +60,11 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  revalidatePath('/')
+  revalidatePath('/blog')
+  revalidatePath('/blog/[slug]', 'page')
+
   return NextResponse.json({ success: true, post: data })
 }
 
@@ -122,6 +128,11 @@ export async function PUT(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  revalidatePath('/')
+  revalidatePath('/blog')
+  revalidatePath('/blog/[slug]', 'page')
+
   return NextResponse.json({ success: true, post: data })
 }
 
@@ -131,5 +142,10 @@ export async function DELETE(req: NextRequest) {
 
   const { id } = await req.json()
   await supabase.from('blog_posts').delete().eq('id', id)
+
+  revalidatePath('/')
+  revalidatePath('/blog')
+  revalidatePath('/blog/[slug]', 'page')
+
   return NextResponse.json({ success: true })
 }
