@@ -37,6 +37,7 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
   const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok })
@@ -44,6 +45,36 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
   }
 
   const set = (k: string, v: string | boolean) => setForm(prev => ({ ...prev, [k]: v }))
+
+  const insertFormat = (type: 'bold' | 'h2' | 'h3' | 'list') => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = textarea.value
+    const selected = text.substring(start, end)
+
+    let replacement = ''
+    if (type === 'bold') {
+      replacement = `**${selected || 'bold text'}**`
+    } else if (type === 'h2') {
+      replacement = `\n## ${selected || 'Heading'}\n`
+    } else if (type === 'h3') {
+      replacement = `\n### ${selected || 'Subheading'}\n`
+    } else if (type === 'list') {
+      replacement = `\n- ${selected || 'List item'}\n`
+    }
+
+    const newContent = text.substring(0, start) + replacement + text.substring(end)
+    setForm(prev => ({ ...prev, content: newContent }))
+
+    setTimeout(() => {
+      textarea.focus()
+      const offset = replacement.length - selected.length
+      textarea.setSelectionRange(start, end + offset)
+    }, 50)
+  }
 
   const handleCoverImage = (file: File) => {
     if (!file.type.startsWith('image/')) { showToast('Images only', false); return }
@@ -181,9 +212,51 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
                 <label className="form-label !mb-0">Full Content</label>
                 <span className="text-[10px] text-dental-blue bg-blue-50 border border-blue-100 rounded-lg px-2 py-0.5 font-medium">Auto-formats Markdown</span>
               </div>
-              <textarea value={form.content} onChange={e => set('content', e.target.value)}
+
+              {/* Formatting Toolbar */}
+              <div className="flex items-center gap-1.5 p-2 bg-dental-alt border-t border-x border-dental-border rounded-t-xl">
+                <button
+                  type="button"
+                  onClick={() => insertFormat('bold')}
+                  className="px-3 py-1.5 text-xs font-bold text-dental-heading bg-white hover:bg-dental-blue hover:text-white border border-dental-border rounded-lg transition-all shadow-sm"
+                  title="Make Selected Text Bold"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormat('h2')}
+                  className="px-2.5 py-1.5 text-xs font-bold text-dental-heading bg-white hover:bg-dental-blue hover:text-white border border-dental-border rounded-lg transition-all shadow-sm"
+                  title="Insert Main Heading (H2)"
+                >
+                  H2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormat('h3')}
+                  className="px-2.5 py-1.5 text-xs font-bold text-dental-heading bg-white hover:bg-dental-blue hover:text-white border border-dental-border rounded-lg transition-all shadow-sm"
+                  title="Insert Subheading (H3)"
+                >
+                  H3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertFormat('list')}
+                  className="px-2.5 py-1.5 text-xs font-bold text-dental-heading bg-white hover:bg-dental-blue hover:text-white border border-dental-border rounded-lg transition-all shadow-sm"
+                  title="Insert Bullet List"
+                >
+                  • List
+                </button>
+              </div>
+
+              <textarea 
+                ref={textareaRef}
+                value={form.content} 
+                onChange={e => set('content', e.target.value)}
                 placeholder="Write the full blog post here..."
-                rows={15} className="form-input resize-y text-sm leading-relaxed" />
+                rows={15} 
+                className="form-input rounded-b-xl rounded-t-none border-t-0 resize-y text-sm leading-relaxed" 
+              />
               
               {/* Formatting Helper Tip Card */}
               <div className="mt-2 bg-dental-alt border border-dental-border rounded-xl p-4 text-[11px] text-dental-body space-y-1.5 leading-relaxed">
