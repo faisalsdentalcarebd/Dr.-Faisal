@@ -50,14 +50,12 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
     const textarea = textareaRef.current
     if (!textarea) return
 
-    // Save scroll position before state update to prevent page jumping to top
     const savedScrollY = window.scrollY
     const savedTextareaScroll = textarea.scrollTop
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const text = textarea.value
-    const selected = text.substring(start, end)
+    const selected = textarea.value.substring(start, end)
 
     let replacement = ''
     if (type === 'bold') {
@@ -74,16 +72,16 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
       replacement = `\n- ${selected || 'List item'}\n`
     }
 
-    const newContent = text.substring(0, start) + replacement + text.substring(end)
-    setForm(prev => ({ ...prev, content: newContent }))
+    // Focus first so execCommand targets this textarea
+    textarea.focus({ preventScroll: true })
+    // execCommand integrates with browser undo history — Ctrl+Z will work
+    document.execCommand('insertText', false, replacement)
+    // Sync React state from textarea's updated value
+    setForm(prev => ({ ...prev, content: textarea.value }))
 
     setTimeout(() => {
-      // Restore scroll position first, then focus without moving the page
       window.scrollTo({ top: savedScrollY, behavior: 'instant' as ScrollBehavior })
       textarea.scrollTop = savedTextareaScroll
-      textarea.focus({ preventScroll: true })
-      const newEnd = start + replacement.length
-      textarea.setSelectionRange(start, newEnd)
     }, 0)
   }
 
