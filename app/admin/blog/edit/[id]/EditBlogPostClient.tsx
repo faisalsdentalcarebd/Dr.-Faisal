@@ -46,9 +46,13 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
 
   const set = (k: string, v: string | boolean) => setForm(prev => ({ ...prev, [k]: v }))
 
-  const insertFormat = (type: 'bold' | 'h2' | 'h3' | 'list') => {
+  const insertFormat = (type: 'bold' | 'h2' | 'h3' | 'list' | 'italic' | 'underline') => {
     const textarea = textareaRef.current
     if (!textarea) return
+
+    // Save scroll position before state update to prevent page jumping to top
+    const savedScrollY = window.scrollY
+    const savedTextareaScroll = textarea.scrollTop
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
@@ -58,6 +62,10 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
     let replacement = ''
     if (type === 'bold') {
       replacement = `**${selected || 'bold text'}**`
+    } else if (type === 'italic') {
+      replacement = `_${selected || 'italic text'}_`
+    } else if (type === 'underline') {
+      replacement = `<u>${selected || 'underlined text'}</u>`
     } else if (type === 'h2') {
       replacement = `\n## ${selected || 'Heading'}\n`
     } else if (type === 'h3') {
@@ -70,10 +78,28 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
     setForm(prev => ({ ...prev, content: newContent }))
 
     setTimeout(() => {
-      textarea.focus()
-      const offset = replacement.length - selected.length
-      textarea.setSelectionRange(start, end + offset)
-    }, 50)
+      // Restore scroll position first, then focus without moving the page
+      window.scrollTo({ top: savedScrollY, behavior: 'instant' as ScrollBehavior })
+      textarea.scrollTop = savedTextareaScroll
+      textarea.focus({ preventScroll: true })
+      const newEnd = start + replacement.length
+      textarea.setSelectionRange(start, newEnd)
+    }, 0)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault()
+        insertFormat('bold')
+      } else if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault()
+        insertFormat('italic')
+      } else if (e.key === 'u' || e.key === 'U') {
+        e.preventDefault()
+        insertFormat('underline')
+      }
+    }
   }
 
   const handleCoverImage = (file: File) => {
@@ -253,6 +279,7 @@ export default function EditBlogPostClient({ initialPost }: EditBlogPostClientPr
                 ref={textareaRef}
                 value={form.content} 
                 onChange={e => set('content', e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Write the full blog post here..."
                 rows={15} 
                 className="form-input rounded-b-xl rounded-t-none border-t-0 resize-y text-sm leading-relaxed" 
