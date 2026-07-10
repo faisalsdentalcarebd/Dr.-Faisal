@@ -50,7 +50,7 @@ export default function JsonLd() {
           name: 'Dr. Sheikh Md. Shahriar Quader',
           jobTitle: 'Prosthodontist',
           description:
-            'FICD Fellow, Associate Professor & HoD Prosthodontics, Shaheed Suhrawardy Medical College Hospital. 28 years of specialist dental experience.',
+            'FICD Fellow, Professor & HoD Prosthodontics, Shaheed Suhrawardy Medical College Hospital. 28 years of specialist dental experience.',
           hasCredential: [
             { '@type': 'EducationalOccupationalCredential', credentialCategory: 'degree', name: 'BDS — Dhaka Dental College' },
             { '@type': 'EducationalOccupationalCredential', credentialCategory: 'degree', name: 'MS (Prosthodontics) — Bangladesh Medical University' },

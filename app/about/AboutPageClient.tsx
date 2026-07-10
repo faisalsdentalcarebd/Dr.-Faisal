@@ -14,12 +14,12 @@ const credentials = [
   { label: 'FICD', sub: 'Fellow, International College of Dentists, USA (2019)', icon: Award },
   { label: 'BMDC Reg. No.: 981', sub: 'Registered Dental Specialist', icon: CheckCircle },
   { label: '28 Years Experience', sub: 'Clinical & Academic Excellence', icon: Clock },
-  { label: 'Associate Professor & HoD', sub: 'Shaheed Suhrawardy Medical College Hospital', icon: GraduationCap },
+  { label: 'Professor & HoD', sub: 'Shaheed Suhrawardy Medical College Hospital', icon: GraduationCap },
   { label: 'International Training', sub: 'India · Thailand · Spain', icon: Globe },
 ]
 
 const career = [
-  { role: 'Associate Professor & Head, Dept. of Prosthodontics', place: 'Shaheed Suhrawardy Medical College Hospital, Dhaka', current: true },
+  { role: 'Professor & Head, Dept. of Prosthodontics', place: 'Shaheed Suhrawardy Medical College Hospital, Dhaka', current: true },
   { role: 'Faculty Member', place: 'Bangladesh Medical University', current: false },
   { role: 'Faculty Member', place: 'Sher-e-Bangla Medical College', current: false },
   { role: 'Faculty Member', place: 'Pioneer Dental College', current: false },
@@ -39,7 +39,7 @@ const bioParagraphs = [
   'In 2019, Dr. Faisal was awarded fellowship by the International College of Dentists (FICD), USA — a prestigious honour granted to dental professionals who demonstrate exceptional professional achievement, ethics, and service to the community. He holds BMDC Registration Number 981.',
 ]
 
-const careerParagraph = 'Alongside his private practice, Dr. Faisal currently serves as Associate Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital, Dhaka — where he supervises postgraduate dental education and contributes to the advancement of prosthodontic care in Bangladesh. He has previously served at Bangladesh Medical University, Sher-e-Bangla Medical College, Pioneer Dental College, and Dhaka Dental College.'
+const careerParagraph = 'Alongside his private practice, Dr. Faisal currently serves as Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital, Dhaka — where he supervises postgraduate dental education and contributes to the advancement of prosthodontic care in Bangladesh. He has previously served at Bangladesh Medical University, Sher-e-Bangla Medical College, Pioneer Dental College, and Dhaka Dental College.'
 
 const trainingParagraph = 'Dr. Faisal has pursued advanced specialty training internationally — studying dental implant techniques in India, Thailand, and Spain; advanced fixed orthodontics through international training programs; and periodontology from leading institutions in India, Thailand, and Spain. He has participated in numerous international and national seminars, symposiums, and hands-on clinical programs, ensuring that his practice reflects the most current evidence-based standards in dentistry.'
 
@@ -126,7 +126,7 @@ export default function AboutPageClient() {
                 className="text-dental-body text-sm mb-6"
               >
                 Prosthodontist | Crown & Bridge Specialist | Dental Implantologist<br />
-                Associate Professor & Head, Dept. of Prosthodontics<br />
+                Professor & Head, Dept. of Prosthodontics<br />
                 Shaheed Suhrawardy Medical College Hospital, Dhaka
               </motion.p>
 

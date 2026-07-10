@@ -8,11 +8,11 @@ import AboutPageClient from './AboutPageClient'
 export const metadata: Metadata = {
   title: "About Dr. Faisal — FICD Prosthodontist Dhaka",
   description:
-    "Meet Dr. Sheikh Md. Shahriar Quader (Dr. Faisal) — Associate Professor, FICD Fellow, 28 years of prosthodontic expertise in Gulshan, Dhaka.",
+    "Meet Dr. Sheikh Md. Shahriar Quader (Dr. Faisal) — Professor, FICD Fellow, 28 years of prosthodontic expertise in Gulshan, Dhaka.",
   openGraph: {
     title: "About Dr. Faisal — FICD Prosthodontist Dhaka",
     description:
-      "Meet Dr. Sheikh Md. Shahriar Quader (Dr. Faisal) — Associate Professor, FICD Fellow, 28 years of prosthodontic expertise in Gulshan, Dhaka.",
+      "Meet Dr. Sheikh Md. Shahriar Quader (Dr. Faisal) — Professor, FICD Fellow, 28 years of prosthodontic expertise in Gulshan, Dhaka.",
     url: 'https://faisalsdentalcare.com/about',
     images: [
       {

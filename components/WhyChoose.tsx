@@ -11,7 +11,7 @@ const leftCards = [
     year: 'ACADEMIC',
     title: 'Professor-Level Expertise',
     description:
-      "Associate Professor & Head of Department at Shaheed Suhrawardy Medical College Hospital — his patients get the same depth that shapes Bangladesh's next generation of specialists.",
+      "Professor & Head of Department at Shaheed Suhrawardy Medical College Hospital — his patients get the same depth that shapes Bangladesh's next generation of specialists.",
   },
   {
     icon: Clock,

@@ -199,7 +199,7 @@ export default function About() {
               <div className="space-y-4 text-dental-body leading-relaxed">
                 {[
                   'Dr. Sheikh Md. Shahriar Quader — known to his patients as Dr. Faisal — has dedicated nearly three decades to transforming smiles and restoring dental function for patients across Bangladesh. His journey began at Dhaka Dental College in 1997, followed by advanced postgraduate training in Prosthodontics at Bangladesh Medical University.',
-                  'As Associate Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital, he trains the next generation of dental specialists while maintaining a thriving private practice at Faisal\'s Dental Care in Gulshan-1.',
+                  'As Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital, he trains the next generation of dental specialists while maintaining a thriving private practice at Faisal\'s Dental Care in Gulshan-1.',
                   'In 2019, Dr. Faisal was awarded fellowship by the International College of Dentists, USA — one of the most prestigious recognitions in global dentistry. He has completed advanced training in India, Thailand, and Spain.',
                 ].map((para, i) => (
                   <motion.p

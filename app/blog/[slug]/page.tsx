@@ -45,7 +45,7 @@ A clinic that is hard to contact before you are a patient is unlikely to be bett
 
 ## Why Patients Across Dhaka Choose Faisal's Dental Care
 
-Dr. Sheikh Md. Shahriar Quader — known to his patients as Dr. Faisal — has spent 28 years treating complex dental cases at his specialist clinic in Gulshan-1. As Associate Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital, and a Fellow of the International College of Dentists USA, he brings a level of qualification that is rare in Dhaka.
+Dr. Sheikh Md. Shahriar Quader — known to his patients as Dr. Faisal — has spent 28 years treating complex dental cases at his specialist clinic in Gulshan-1. As Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital, and a Fellow of the International College of Dentists USA, he brings a level of qualification that is rare in Dhaka.
 
 His clinic offers a focused range of specialist services — Crown & Bridge restorations, Dental Implants, Fixed Orthodontics, Root Canal Treatment, Dental Scaling, Tooth Extraction, and Dental Fillings — all performed by a single experienced specialist who understands your full dental history and long-term needs.
 
@@ -79,7 +79,7 @@ You may benefit from seeing a Prosthodontist if you are missing one or more teet
 
 ## Dr. Faisal's Prosthodontic Practice in Dhaka
 
-At Faisal's Dental Care in Gulshan-1, Dr. Sheikh Md. Shahriar Quader brings 28 years of specialist Prosthodontic experience to patients across Dhaka. As Associate Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital — and a Fellow of the International College of Dentists, USA — Dr. Faisal is uniquely positioned to handle the full range of prosthodontic cases with precision and care.
+At Faisal's Dental Care in Gulshan-1, Dr. Sheikh Md. Shahriar Quader brings 28 years of specialist Prosthodontic experience to patients across Dhaka. As Professor and Head of the Department of Prosthodontics at Shaheed Suhrawardy Medical College Hospital — and a Fellow of the International College of Dentists, USA — Dr. Faisal is uniquely positioned to handle the full range of prosthodontic cases with precision and care.
   `,
   'implants-vs-crown-bridge': `
 Losing a tooth is more than a cosmetic concern. It affects how you chew, how you speak, and over time, even the shape of your jaw. The good news is that modern dentistry offers two excellent options for replacing a missing tooth: dental implants and crown & bridge restorations.
@@ -353,7 +353,7 @@ export default async function BlogPostPage({ params }: Props) {
               <div>
                 <div className="font-bold text-dental-heading">Dr. Sheikh Md. Shahriar Quader (Dr. Faisal)</div>
                 <div className="text-dental-body text-sm">BDS · MS Prosthodontics · FICD (USA) · 28 Years Experience</div>
-                <div className="text-dental-blue text-xs font-medium mt-1">Associate Professor & HoD, Shaheed Suhrawardy Medical College Hospital</div>
+                <div className="text-dental-blue text-xs font-medium mt-1">Professor & HoD, Shaheed Suhrawardy Medical College Hospital</div>
               </div>
             </div>
             <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-dental-blue/20">
