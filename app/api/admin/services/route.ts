@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,6 +66,42 @@ export async function POST(req: NextRequest) {
     image_url, price_min, price_max, unit, sort_order,
   })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Sync to prices table
+  const SERVICE_TO_PRICE_ID: Record<string, string> = {
+    'crown-bridge-restoration': 'crown',
+    'dental-implants': 'implant',
+    'fixed-orthodontics-braces': 'ortho',
+    'root-canal-treatment': 'rct',
+    'scaling-polishing': 'scaling',
+    'tooth-extraction': 'extraction',
+    'tooth-filling-restoration': 'filling'
+  }
+  const priceId = SERVICE_TO_PRICE_ID[slug]
+  if (priceId) {
+    const { data: existingPrice } = await supabase.from('prices').select('id').eq('service_id', priceId).single()
+    if (existingPrice) {
+      await supabase.from('prices').update({
+        min: price_min,
+        max: price_max,
+        unit: unit,
+      }).eq('service_id', priceId)
+    } else {
+      const { data: existingAll } = await supabase.from('prices').select('id')
+      const pSort = existingAll?.length ?? 0
+      await supabase.from('prices').insert({
+        label: name,
+        service_id: priceId,
+        unit: unit,
+        min: price_min,
+        max: price_max,
+        note: `Per ${unit}`,
+        sort_order: pSort
+      })
+    }
+  }
+
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }
 
@@ -99,6 +136,27 @@ export async function PUT(req: NextRequest) {
     image_url, price_min, price_max, unit,
   }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Sync to prices table
+  const SERVICE_TO_PRICE_ID: Record<string, string> = {
+    'crown-bridge-restoration': 'crown',
+    'dental-implants': 'implant',
+    'fixed-orthodontics-braces': 'ortho',
+    'root-canal-treatment': 'rct',
+    'scaling-polishing': 'scaling',
+    'tooth-extraction': 'extraction',
+    'tooth-filling-restoration': 'filling'
+  }
+  const priceId = SERVICE_TO_PRICE_ID[slug]
+  if (priceId) {
+    await supabase.from('prices').update({
+      min: price_min,
+      max: price_max,
+      unit: unit,
+    }).eq('service_id', priceId)
+  }
+
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }
 
@@ -118,11 +176,31 @@ export async function DELETE(req: NextRequest) {
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id, image_url } = await req.json()
+  const { data: service } = await supabase.from('services').select('slug').eq('id', id).single()
+  
   if (image_url) {
     const path = image_url.split('/storage/v1/object/public/services/')[1]
     if (path) await supabase.storage.from('services').remove([path])
   }
   const { error } = await supabase.from('services').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (service?.slug) {
+    const SERVICE_TO_PRICE_ID: Record<string, string> = {
+      'crown-bridge-restoration': 'crown',
+      'dental-implants': 'implant',
+      'fixed-orthodontics-braces': 'ortho',
+      'root-canal-treatment': 'rct',
+      'scaling-polishing': 'scaling',
+      'tooth-extraction': 'extraction',
+      'tooth-filling-restoration': 'filling'
+    }
+    const priceId = SERVICE_TO_PRICE_ID[service.slug]
+    if (priceId) {
+      await supabase.from('prices').delete().eq('service_id', priceId)
+    }
+  }
+
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,6 +35,30 @@ export async function POST(req: NextRequest) {
     sort_order,
   })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Sync to services table
+  const PRICE_TO_SERVICE_SLUG: Record<string, string> = {
+    'crown': 'crown-bridge-restoration',
+    'implant': 'dental-implants',
+    'ortho': 'fixed-orthodontics-braces',
+    'rct': 'root-canal-treatment',
+    'scaling': 'scaling-polishing',
+    'extraction': 'tooth-extraction',
+    'filling': 'tooth-filling-restoration'
+  }
+  const serviceSlug = PRICE_TO_SERVICE_SLUG[service_id]
+  if (serviceSlug) {
+    await supabase
+      .from('services')
+      .update({
+        price_min: min || 0,
+        price_max: max || 0,
+        unit: unit || 'treatment'
+      })
+      .eq('slug', serviceSlug)
+  }
+
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }
 
@@ -43,14 +68,41 @@ export async function PUT(req: NextRequest) {
 
   const prices = await req.json()
   const errors: string[] = []
+  
+  const PRICE_TO_SERVICE_SLUG: Record<string, string> = {
+    'crown': 'crown-bridge-restoration',
+    'implant': 'dental-implants',
+    'ortho': 'fixed-orthodontics-braces',
+    'rct': 'root-canal-treatment',
+    'scaling': 'scaling-polishing',
+    'extraction': 'tooth-extraction',
+    'filling': 'tooth-filling-restoration'
+  }
+
   for (const p of prices) {
     const { error } = await supabase
       .from('prices')
       .update({ min: p.min, max: p.max, label: p.label, unit: p.unit, note: p.note })
       .eq('id', p.id)
-    if (error) errors.push(error.message)
+    if (error) {
+      errors.push(error.message)
+    } else {
+      // Sync to services table
+      const serviceSlug = PRICE_TO_SERVICE_SLUG[p.service_id]
+      if (serviceSlug) {
+        await supabase
+          .from('services')
+          .update({
+            price_min: p.min,
+            price_max: p.max,
+            unit: p.unit
+          })
+          .eq('slug', serviceSlug)
+      }
+    }
   }
   if (errors.length) return NextResponse.json({ error: errors.join('; ') }, { status: 500 })
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }
 
@@ -60,7 +112,34 @@ export async function DELETE(req: NextRequest) {
 
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const { data: price } = await supabase.from('prices').select('service_id').eq('id', id).single()
+
   const { error } = await supabase.from('prices').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (price?.service_id) {
+    const PRICE_TO_SERVICE_SLUG: Record<string, string> = {
+      'crown': 'crown-bridge-restoration',
+      'implant': 'dental-implants',
+      'ortho': 'fixed-orthodontics-braces',
+      'rct': 'root-canal-treatment',
+      'scaling': 'scaling-polishing',
+      'extraction': 'tooth-extraction',
+      'filling': 'tooth-filling-restoration'
+    }
+    const serviceSlug = PRICE_TO_SERVICE_SLUG[price.service_id]
+    if (serviceSlug) {
+      await supabase
+        .from('services')
+        .update({
+          price_min: 0,
+          price_max: 0
+        })
+        .eq('slug', serviceSlug)
+    }
+  }
+
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }

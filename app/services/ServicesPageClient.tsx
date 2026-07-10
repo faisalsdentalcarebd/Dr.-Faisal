@@ -1,15 +1,21 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import BookingForm from '@/components/BookingForm'
+import { createClient } from '@supabase/supabase-js'
 import {
   X, Tag, HelpCircle, Calendar, CheckCircle2, Stethoscope,
   Calculator, MessageCircle, Phone, ChevronDown, Info,
   ArrowRight, Crown, Anchor, AlignCenter, Activity,
   Sparkles, Scissors, ShieldCheck,
 } from 'lucide-react'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 const SERVICE_DATA = [
   {
@@ -469,7 +475,53 @@ function ServiceModal({
 }
 
 export default function ServicesPageClient() {
+  const [servicesList, setServicesList] = useState<typeof SERVICE_DATA>(SERVICE_DATA)
   const [activeService, setActiveService] = useState<typeof SERVICE_DATA[0] | null>(null)
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from('services').select('*').order('sort_order', { ascending: true }),
+      supabase.from('prices').select('*').order('label', { ascending: true }),
+    ]).then(([{ data: svcData }, { data: priceData }]) => {
+      if (svcData && svcData.length > 0) {
+        // Build price lookup by label
+        const priceLabelMap: Record<string, { min: number; max: number; unit: string }> = {}
+        if (priceData && priceData.length > 0) {
+          priceData.forEach((p: any) => {
+            priceLabelMap[p.label] = { min: p.min, max: p.max, unit: p.unit }
+          })
+        }
+        
+        setServicesList(svcData.map(s => {
+          const p = priceLabelMap[s.name]
+          const minVal = p?.min ?? s.price_min
+          const maxVal = p?.max ?? s.price_max
+          const unitVal = p?.unit ?? s.unit
+          const priceStr = minVal && maxVal
+            ? `৳${minVal.toLocaleString('en-BD')} – ৳${maxVal.toLocaleString('en-BD')} / ${unitVal}`
+            : ''
+            
+          const hardcoded = SERVICE_DATA.find(x => x.id === s.slug) || SERVICE_DATA[0]!
+          return {
+            ...hardcoded,
+            id: s.slug,
+            calcId: s.slug,
+            title: s.name,
+            tag: s.tag || hardcoded.tag || '',
+            price: priceStr,
+            image: s.image_url || hardcoded.image,
+            shortDesc: s.description || hardcoded.shortDesc,
+            why: s.why_needed || hardcoded.why,
+            when: s.when_needed || hardcoded.when,
+            expect: s.description || hardcoded.expect,
+            benefits: s.benefits
+              ? s.benefits.split('\n').map((b: string) => b.replace(/^[•\-*]\s*/, '').trim()).filter(Boolean)
+              : hardcoded.benefits,
+          }
+        }))
+      }
+    })
+  }, [])
 
   return (
     <>
@@ -511,7 +563,7 @@ export default function ServicesPageClient() {
         {/* Cinema Stack */}
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            {SERVICE_DATA.map((service, i) => (
+            {servicesList.map((service, i) => (
               <ServiceRow
                 key={service.id}
                 service={service}
