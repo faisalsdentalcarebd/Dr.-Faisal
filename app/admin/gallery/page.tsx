@@ -344,30 +344,42 @@ export default function GalleryAdmin() {
               ) : (
                 <div className="divide-y divide-dental-border">
                   {cases.map(c => (
-                    <div key={c.id} className="p-5 flex items-start gap-5">
-                      <div className="flex-1 grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-xs text-dental-body font-semibold uppercase tracking-wider mb-2">Before</p>
-                          <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-dental-border">
-                            <Image src={c.before_url} alt="before" fill className="object-cover" sizes="300px" />
+                    <div key={c.id} className="p-6 hover:bg-dental-alt/40 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex-1 grid grid-cols-2 gap-4 max-w-3xl">
+                          <div>
+                            <p className="text-xs text-dental-body font-semibold uppercase tracking-wider mb-2">Before</p>
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-dental-border bg-dental-alt">
+                              <Image src={c.before_url} alt="before" fill className="object-cover" sizes="300px" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-dental-body font-semibold uppercase tracking-wider mb-2">After</p>
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-dental-border bg-dental-alt">
+                              <Image src={c.after_url} alt="after" fill className="object-cover" sizes="300px" />
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-dental-body font-semibold uppercase tracking-wider mb-2">After</p>
-                          <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-dental-border">
-                            <Image src={c.after_url} alt="after" fill className="object-cover" sizes="300px" />
+                        <div className="flex flex-col md:items-end justify-between gap-4 self-stretch min-w-[200px]">
+                          <div className="flex-1">
+                            <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-dental-blue bg-blue-50 px-2.5 py-1 rounded-md mb-2">Treatment Case</span>
+                            <h3 className="text-sm font-bold text-dental-heading leading-snug">{c.label || 'No description provided'}</h3>
                           </div>
+                          <button
+                            onClick={() => handleDeleteCase(c)}
+                            disabled={deletingCase === c.id}
+                            className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 rounded-xl transition-all disabled:opacity-50 disabled:pointer-events-none"
+                            title="Delete case"
+                          >
+                            {deletingCase === c.id ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={13} />
+                            )}
+                            Delete Case
+                          </button>
                         </div>
-                        {c.label && <p className="col-span-2 text-sm font-semibold text-dental-heading">{c.label}</p>}
                       </div>
-                      <button
-                        onClick={() => handleDeleteCase(c)}
-                        disabled={deletingCase === c.id}
-                        className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-dental-body hover:text-red-500 hover:bg-red-50 transition-all mt-6"
-                        title="Delete case"
-                      >
-                        {deletingCase === c.id ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                      </button>
                     </div>
                   ))}
                 </div>
