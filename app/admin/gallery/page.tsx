@@ -108,6 +108,7 @@ export default function GalleryAdmin() {
   // ── Before/After ───────────────────────────────────────────────────────────
   const pickFile = (which: 'before' | 'after', file: File) => {
     if (!file.type.startsWith('image/')) { showToast('Images only', false); return }
+    if (file.size > 2.5 * 1024 * 1024) { showToast('Image too large — max 2.5MB per image', false); return }
     if (which === 'before') { setBeforeFile(file); setBeforePreview(URL.createObjectURL(file)) }
     else { setAfterFile(file); setAfterPreview(URL.createObjectURL(file)) }
   }
@@ -116,20 +117,37 @@ export default function GalleryAdmin() {
     e.preventDefault()
     if (!beforeFile || !afterFile) { showToast('Both images required', false); return }
     setBaUploading(true)
-    const fd = new FormData()
-    fd.append('label', baLabel)
-    fd.append('before', beforeFile)
-    fd.append('after', afterFile)
-    const res = await fetch('/api/admin/before-after', { method: 'POST', body: fd })
-    const data = await res.json()
-    setBaUploading(false)
-    if (data.success) {
-      showToast('Case added!')
-      setBaLabel(''); setBeforeFile(null); setAfterFile(null)
-      setBeforePreview(''); setAfterPreview('')
-      loadCases()
-    } else {
-      showToast(data.error || 'Upload failed', false)
+    
+    try {
+      const fd = new FormData()
+      fd.append('label', baLabel)
+      fd.append('before', beforeFile)
+      fd.append('after', afterFile)
+      
+      const res = await fetch('/api/admin/before-after', { method: 'POST', body: fd })
+      let data
+      try {
+        data = await res.json()
+      } catch (jsonErr) {
+        showToast('Server error or connection timed out.', false)
+        return
+      }
+
+      if (data.success) {
+        showToast('Case added!')
+        setBaLabel('')
+        setBeforeFile(null)
+        setAfterFile(null)
+        setBeforePreview('')
+        setAfterPreview('')
+        loadCases()
+      } else {
+        showToast(data.error || 'Upload failed', false)
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Network error occurred', false)
+    } finally {
+      setBaUploading(false)
     }
   }
 

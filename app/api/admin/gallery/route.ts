@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidatePath('/')
   return NextResponse.json({ success: true, image: data })
 }
 
@@ -55,5 +57,6 @@ export async function DELETE(req: NextRequest) {
   const { id, filename } = await req.json()
   await supabase.storage.from('gallery').remove([filename])
   await supabase.from('gallery_images').delete().eq('id', id)
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }

@@ -92,24 +92,65 @@ export default function Gallery() {
           </p>
         </motion.div>
 
-        {/* Filmstrip — single row, right to left */}
-        <div
-          className="relative w-full overflow-hidden"
-          style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}
-        >
+        {/* Filmstrip or Grid based on image count */}
+        {images.length >= 5 ? (
           <div
-            ref={stripRef}
-            className="flex gap-5 w-max"
-            style={{
-              animation: 'scrollRTL 55s linear infinite',
-              willChange: 'transform',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
-            onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}
+            className="relative w-full overflow-hidden"
+            style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)' }}
           >
-            {STRIP.map((img, index) => (
+            <div
+              ref={stripRef}
+              className="flex gap-5 w-max"
+              style={{
+                animation: 'scrollRTL 55s linear infinite',
+                willChange: 'transform',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
+              onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}
+            >
+              {[...images, ...images].map((img, index) => (
+                <div
+                  key={`${img.id}-${index}`}
+                  className="relative flex-none overflow-hidden cursor-pointer group"
+                  style={{
+                    width: 320,
+                    height: 240,
+                    borderRadius: 18,
+                    border: '1.5px solid rgba(10,14,24,0.08)',
+                    boxShadow: '0 4px 24px rgba(10,14,24,0.08)',
+                    background: '#f0e8df',
+                  }}
+                  onClick={() => open(img.id)}
+                >
+                  <Image
+                    src={img.src}
+                    alt={img.caption}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-108"
+                    style={{ transition: 'transform 0.7s cubic-bezier(0.22,1,0.36,1)' }}
+                    sizes="320px"
+                  />
+                  {/* Hover overlay */}
+                  <div
+                    className="absolute inset-0 flex items-end p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: 'linear-gradient(to top, rgba(10,14,24,0.82) 0%, transparent 60%)' }}
+                  >
+                    <span className="text-sm font-semibold" style={{ color: '#FFF8F0' }}>
+                      {img.caption}
+                    </span>
+                  </div>
+                  {/* Orange glow border on hover */}
+                  <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    style={{ boxShadow: 'inset 0 0 0 2px #FF6A00' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center gap-6 px-4">
+            {images.map((img) => (
               <div
-                key={`${img.id}-${index}`}
+                key={img.id}
                 className="relative flex-none overflow-hidden cursor-pointer group"
                 style={{
                   width: 320,
@@ -144,7 +185,7 @@ export default function Gallery() {
               </div>
             ))}
           </div>
-        </div>
+        )}
 
         {/* CTA */}
         <motion.div

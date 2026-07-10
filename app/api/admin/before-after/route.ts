@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
       sort_order,
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    revalidatePath('/')
     return NextResponse.json({ success: true })
   } catch (e: unknown) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
@@ -79,5 +81,6 @@ export async function DELETE(req: NextRequest) {
   ])
   const { error } = await supabase.from('before_after_cases').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }
