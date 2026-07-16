@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import BlogPageClient from './BlogPageClient'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "Dental Health Tips & Guides | Faisal's Dental Care Dhaka",

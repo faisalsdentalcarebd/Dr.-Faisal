@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, Clock, Tag, Phone, MapPin } from 'lucide-react'
 import { blogPosts } from '@/lib/data'
 import { supabase } from '@/lib/supabase'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 const articleContent: Record<string, string> = {
   'find-dentist-near-me-gulshan-dhaka': `
@@ -376,4 +376,11 @@ export default async function BlogPostPage({ params }: Props) {
       </section>
     </div>
   )
+}
+
+export async function generateStaticParams() {
+  const { data: posts } = await supabase.from('blog_posts').select('slug').eq('published', true)
+  const dbSlugs = posts ? posts.map((p) => ({ slug: p.slug })) : []
+  const mockSlugs = blogPosts.map((p) => ({ slug: p.slug }))
+  return [...mockSlugs, ...dbSlugs]
 }

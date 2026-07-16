@@ -7,32 +7,11 @@ export default function Preloader() {
   const [exiting, setExiting] = useState(false)
 
   useEffect(() => {
-    const exit = () => {
+    const timer = setTimeout(() => {
       setExiting(true)
       setTimeout(() => setVisible(false), 500)
-    }
-
-    // Wait for page load, max 2s
-    const safety = setTimeout(exit, 2000)
-
-    if (document.readyState === 'complete') {
-      // Already loaded — let animation play at least 1.5s
-      const min = setTimeout(exit, 1500)
-      clearTimeout(safety)
-      return () => clearTimeout(min)
-    }
-
-    const onLoad = () => {
-      clearTimeout(safety)
-      // Page loaded — let animation finish (minimum 1.5s from mount)
-      setTimeout(exit, 1500)
-    }
-    window.addEventListener('load', onLoad, { once: true })
-
-    return () => {
-      clearTimeout(safety)
-      window.removeEventListener('load', onLoad)
-    }
+    }, 1500)
+    return () => clearTimeout(timer)
   }, [])
 
   if (!visible) return null

@@ -7,14 +7,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: false,
   },
-  global: {
-    fetch: (url, options) => {
-      return fetch(url, {
-        ...options,
-        cache: 'no-store',
-      })
-    },
-  },
 })
 
 export type Booking = {

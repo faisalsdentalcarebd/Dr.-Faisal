@@ -15,7 +15,7 @@ import BeforeAfter from '@/components/BeforeAfter'
 
 import { supabase } from '@/lib/supabase'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "Prosthodontist in Gulshan Dhaka | Faisal's Dental Care",
