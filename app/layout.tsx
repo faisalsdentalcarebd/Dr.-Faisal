@@ -4,7 +4,7 @@ import './globals.css'
 import SiteShell from './SiteShell'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NODE_ENV === 'production' ? 'https://faisalsdentalcare.com' : 'http://localhost:3001'),
   title: {
     default: "Prosthodontist in Gulshan Dhaka | Faisal's Dental Care",
     template: "%s | Faisal's Dental Care",
